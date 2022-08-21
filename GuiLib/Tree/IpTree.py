@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (QApplication, QTreeWidget, QMenu, QInputDialog,
 
 from Database.open_mysql import Machine
 from core.ssh_reset_machine import reset_machine,off_machine,on_machine,state_machine,is_ssl_machine
-
+from core.mchine import MachineDispose
 
 # 路径
 RootPath = os.path.abspath(os.path.dirname(__file__))
@@ -40,8 +40,8 @@ class IpTree(QTreeWidget):
         super(IpTree,self).__init__(*args,**kwargs)
 
         self.__node = dict()
-        # 机器数据库
-        self.__mchine = Machine()
+        #  处理机器的类
+        self.__mchine = MachineDispose()
 
         self.setHeaderLabels(["IP","范围"])
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -75,7 +75,7 @@ class IpTree(QTreeWidget):
 
     def Init(self):
         # 这里不能直接传QColor(255,0,0),但是可以传元组
-        print(self.structData())
+        # print(self.structData())
         # self.createTree({("198.204.247.82", "1-40",IpTree.BLUE): ["450", "123"]})
         self.createTree(self.structData())
 

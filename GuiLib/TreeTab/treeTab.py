@@ -11,6 +11,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView,QWebEnginePage,QWebEngineSet
 from GuiLib.Tree.IpTree import IpTree
 from GuiLib.tabbar.tabBar import TabBar
 
+from core.mchine import MachineDispose
 
 def url(ip):
     return "https://{}/ui/".format(ip)
@@ -33,6 +34,9 @@ class TreeTab(QWidget):
         self.tree = IpTree(self.splitter)
         self.tab= TabBar(self.splitter)
 
+        # 机器
+        self.machine = MachineDispose()
+
         self.myEvent()
         self.Init()
 
@@ -49,17 +53,23 @@ class TreeTab(QWidget):
         self.tab.addTab(text=text,url=url)
 
     def ip_Event(self,ip_scope) -> None:
-        ip = ip_scope[0]
-        number = int(ip_scope[1])
-        machine_number = int(ip_scope[2])  # 机器数量
-        # 获取真实的机器访问id
-        real_id = number % machine_number
-        if real_id >1:
-            real_id += 1
+        print("-->",ip_scope)
+        # ip = ip_scope[0]
+        # number = int(ip_scope[1])
+        # machine_number = int(ip_scope[2])  # 机器数量
+        # # 获取真实的机器访问id
+        # real_id = number % machine_number
+        # if real_id >1:
+        #     real_id += 1
         # self.addTab(text=str(number),url=machineIDUrl(ip,real_id))
-        print(url(ip))
-        self.addTab(text=str(number),url=url(ip))
+        # print(url(ip))
+        # self.addTab(text=str(number),url=url(ip))
         # print("url:",machineIDUrl(ip,real_id))
+
+        # print(self.machine.url(ip_scope[1]))
+        number = ip_scope[1]
+        url=self.machine.machineIDUrl(number)
+        self.addTab(text=number,url=url)
 
     def myEvent(self):
         self.tree.ipScope.connect(self.ip_Event)
