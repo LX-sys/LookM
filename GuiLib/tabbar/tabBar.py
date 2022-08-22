@@ -8,7 +8,7 @@ from PyQt5 import QtGui
 from PyQt5.QtCore import QPoint, Qt, pyqtSignal, QCoreApplication
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWebEngineWidgets import QWebEngineView,QWebEnginePage,QWebEngineSettings
-from PyQt5.QtWidgets import (QApplication, QTabBar, QWidget,QTabWidget,QGridLayout,
+from PyQt5.QtWidgets import (QApplication, QTabBar, QWidget,QTabWidget,QGridLayout,QFrame,
                              QDockWidget,QMainWindow)
 
 from GuiLib.WebView.webView import WebView,WebEnginePage
@@ -20,7 +20,7 @@ class MyQDockWidget(QDockWidget):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-        self.dockWidgetContents = QWidget()
+        self.dockWidgetContents = QFrame()
         self.setWidget(self.dockWidgetContents)
 
         self.lock = True
@@ -102,54 +102,93 @@ class TabBar(QTabWidget):
     def __init__(self, *args,**kwargs) -> None:
         super().__init__(*args,**kwargs)
 
-        self.tab_list = []
+        # self.tab_list = []
         self.tab = MyTabBar()
         self.setTabBar(self.tab)
+        self.setTabsClosable(True)
 
         '''
-        {"xxx":"xx.xx.xx","xxx_certificate":"asdasd"}
+        {"web":"机器tab对象","state":True}
         '''
         self.__machine = dict()
 
         win = QMainWindow()
         self.docw = MyQDockWidget()
         win.addDockWidget(Qt.RightDockWidgetArea, self.docw)
-        self.addTab(text="tabbar")
-        self.addTab(text="dsad")
+        # self.addTab(number="tabbar")
+        # print(self.__machine)
+        # self.tab_close_Event(0)
+        # print(self.__machine)
+        # self.addTab(number="tabbar")
+        # print(self.__machine)
+        # self.addTab(number="dsad")
 
-        # self.myEvent()
+        self.myEvent()
 
-    def addTab(self, widget: QWidget=None, text: str="",pos:int=None,url=None):
+    # 保存机器状态
+    def saveMachineSate(self,number,webview:WebView=None,state:bool=True):
+        if webview is None:
+            self.__machine[number]["state"]=state
+        else:
+            self.__machine[number] = {"web":webview,"state":state}
+
+    # 检测是否创建过number Tab
+    def is_machine(self,number:str):
+        if number in self.__machine:
+            return True
+        return False
+
+    # 获取number的窗口
+    def get_machine(self,number:str)->WebView:
+        return self.__machine[number]["web"]
+
+    def addTab(self, widget: QWidget=None, number: str="",pos:int=None,url=None):
         win = QMainWindow()
         self.docw = MyQDockWidget()
 
         self.gbox = QGridLayout(self.docw.getWidget())
-        webview = WebView(self.docw)
-        webview.adjustSize()
-        # 忽略证书
-        webview.setPage(webview.web)
-        webview.settings().setAttribute(QWebEngineSettings.JavascriptEnabled, True)
+        # 如果机器打开过,则直接获取窗口
+        if self.is_machine(number):
+            webview = self.get_machine(number)
+        else:
+            webview = WebView(self.docw)
+            webview.adjustSize()
+            # 忽略证书
+            webview.setPage(webview.web)
+            webview.settings().setAttribute(QWebEngineSettings.JavascriptEnabled, True)
+            if url is None:
+                # webview.load("http://www.baidu.com")
+                webview.load("https://198.204.247.82/ui/")
+            else:
+                webview.load(url)
         self.gbox.addWidget(webview)
         win.addDockWidget(Qt.RightDockWidgetArea, self.docw)
-        self.tab_list.append(win)
+        # self.tab_list.append(win)
+
         if pos is None:
-            super().addTab(win, text)
+            super().addTab(win, number)
         else:
-            super().insertTab(pos, win, text)
-        if url is None:
-            # webview.load("http://www.baidu.com")
-            webview.load("https://198.204.247.82/ui/")
-        else:
-            webview.load(url)
-        self.__machine[text] = webview
+            super().insertTab(pos, win, number)
+
+        # 保存机器状态
+        self.saveMachineSate(number,webview)
 
     # 自定义拖拽事件
     def tabDragEvent(self,b:bool):
         if b:
             self.docw.setFloating(True)
 
+    # tab关闭
+    def tab_close_Event(self,index:int):
+        number = self.tabText(index)
+        print(number)
+        self.removeTab(index)
+        self.saveMachineSate(number,None,False)
+
     def myEvent(self):
-        self.tab.draged.connect(self.tabDragEvent)
+        # self.tab.draged.connect(self.tabDragEvent)
+        self.tabCloseRequested.connect(self.tab_close_Event)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv + ["--no-sandbox"])

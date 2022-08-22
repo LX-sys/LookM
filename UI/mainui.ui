@@ -14,42 +14,489 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <property name="spacing">
-     <number>1</number>
-    </property>
+   <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
      <number>2</number>
     </property>
     <property name="topMargin">
-     <number>2</number>
+     <number>0</number>
     </property>
     <property name="rightMargin">
      <number>2</number>
     </property>
     <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <property name="spacing">
      <number>2</number>
     </property>
-    <item>
-     <widget class="QSplitter" name="splitter">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+    <item row="0" column="0">
+     <widget class="QStackedWidget" name="stackedWidget">
+      <property name="currentIndex">
+       <number>0</number>
       </property>
-      <widget class="QWidget" name="widget_main" native="true">
-       <property name="styleSheet">
-        <string notr="true">background-color: rgb(85, 255, 255);</string>
-       </property>
+      <widget class="QWidget" name="page_main">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QSplitter" name="splitter">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <widget class="QWidget" name="widget_main" native="true">
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(85, 255, 255);</string>
+           </property>
+          </widget>
+          <widget class="QWidget" name="widget" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>291</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>291</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <widget class="QWidget" name="widget_right" native="true">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>10</y>
+              <width>271</width>
+              <height>271</height>
+             </rect>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>301</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(74, 74, 74);</string>
+            </property>
+            <widget class="QPushButton" name="btn_setting">
+             <property name="geometry">
+              <rect>
+               <x>50</x>
+               <y>90</y>
+               <width>171</width>
+               <height>41</height>
+              </rect>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-color: rgb(85, 85, 255);</string>
+             </property>
+             <property name="text">
+              <string>进入设置页面</string>
+             </property>
+            </widget>
+            <widget class="QWidget" name="">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>20</y>
+               <width>231</width>
+               <height>43</height>
+              </rect>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLineEdit" name="lineEdit_search">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>41</height>
+                 </size>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">color: rgb(255, 255, 255);</string>
+                </property>
+                <property name="placeholderText">
+                 <string>机器编号</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btn_search">
+                <property name="minimumSize">
+                 <size>
+                  <width>41</width>
+                  <height>41</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>41</width>
+                  <height>41</height>
+                 </size>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">background-color: rgb(171, 171, 171);
+color: rgb(220, 220, 220);</string>
+                </property>
+                <property name="text">
+                 <string>搜索</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+           <widget class="QPushButton" name="btn_downJPG">
+            <property name="geometry">
+             <rect>
+              <x>106</x>
+              <y>230</y>
+              <width>80</width>
+              <height>80</height>
+             </rect>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton{
+background-color:#49da6b;
+border:1px solid rgb(74, 74, 74);
+border-radius:40px;
+}</string>
+            </property>
+            <property name="text">
+             <string>下载图片</string>
+            </property>
+           </widget>
+           <widget class="QWidget" name="widget_downJPG" native="true">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>280</y>
+              <width>271</width>
+              <height>391</height>
+             </rect>
+            </property>
+           </widget>
+          </widget>
+         </widget>
+        </item>
+       </layout>
       </widget>
-      <widget class="QWidget" name="widget_right" native="true">
-       <property name="maximumSize">
-        <size>
-         <width>301</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">background-color: rgb(255, 255, 127);</string>
-       </property>
+      <widget class="QWidget" name="page_setting">
+       <widget class="QGroupBox" name="groupBox_ip_tree">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>20</y>
+          <width>210</width>
+          <height>150</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>IP树</string>
+        </property>
+        <widget class="QRadioButton" name="radiobtn_all">
+         <property name="geometry">
+          <rect>
+           <x>40</x>
+           <y>20</y>
+           <width>121</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>显示全部IP地址</string>
+         </property>
+        </widget>
+        <widget class="QRadioButton" name="radiobtn_usable">
+         <property name="geometry">
+          <rect>
+           <x>40</x>
+           <y>70</y>
+           <width>121</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>只显示可用IP地址</string>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_machine">
+        <property name="geometry">
+         <rect>
+          <x>270</x>
+          <y>20</y>
+          <width>210</width>
+          <height>150</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>机器登录账号</string>
+        </property>
+        <widget class="QLabel" name="label_m_use">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>30</y>
+           <width>54</width>
+           <height>12</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>账号</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEdit_m_use">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>45</y>
+           <width>113</width>
+           <height>20</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_m_pwd">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>85</y>
+           <width>54</width>
+           <height>12</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>密码</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEdit_m_pwd">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>100</y>
+           <width>113</width>
+           <height>20</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="btn_m_update">
+         <property name="geometry">
+          <rect>
+           <x>150</x>
+           <y>110</y>
+           <width>51</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>更新</string>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_DB">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>200</y>
+          <width>210</width>
+          <height>150</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>数据库账号密码</string>
+        </property>
+        <widget class="QLabel" name="label_db_use">
+         <property name="geometry">
+          <rect>
+           <x>23</x>
+           <y>35</y>
+           <width>54</width>
+           <height>12</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>账号</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEdit_db_use">
+         <property name="geometry">
+          <rect>
+           <x>23</x>
+           <y>50</y>
+           <width>113</width>
+           <height>20</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_db_pwd">
+         <property name="geometry">
+          <rect>
+           <x>23</x>
+           <y>95</y>
+           <width>54</width>
+           <height>12</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>密码</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEdit_db_pwd">
+         <property name="geometry">
+          <rect>
+           <x>23</x>
+           <y>110</y>
+           <width>113</width>
+           <height>20</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="btn_db_update">
+         <property name="geometry">
+          <rect>
+           <x>151</x>
+           <y>114</y>
+           <width>51</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>更新</string>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_ip_right">
+        <property name="geometry">
+         <rect>
+          <x>272</x>
+          <y>200</y>
+          <width>210</width>
+          <height>150</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>IP树右键服务功能</string>
+        </property>
+        <widget class="QCheckBox" name="checkBox_restart">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>28</y>
+           <width>101</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>重启功能</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="checkBox_off">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>60</y>
+           <width>101</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>关机</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="checkBox_on">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>90</y>
+           <width>101</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>开机</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="checkBox_state">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>120</y>
+           <width>101</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>查看状态</string>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_downJPG">
+        <property name="geometry">
+         <rect>
+          <x>510</x>
+          <y>24</y>
+          <width>210</width>
+          <height>150</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>下载图片服务</string>
+        </property>
+        <widget class="QLabel" name="label_browser">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>30</y>
+           <width>71</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>浏览器驱动</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEdit_browser_path">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>50</y>
+           <width>113</width>
+           <height>20</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="btn_browser">
+         <property name="geometry">
+          <rect>
+           <x>122</x>
+           <y>49</y>
+           <width>41</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+        </widget>
+       </widget>
       </widget>
      </widget>
     </item>

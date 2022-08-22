@@ -20,6 +20,45 @@ from core.mchine import MachineDispose
 RootPath = os.path.abspath(os.path.dirname(__file__))
 icon_Path = os.path.join(RootPath, "icon")
 
+# 自定义右键菜单
+class RightMenu(QMenu):
+    def __init__(self,*args,**kwargs):
+        super(RightMenu,self).__init__(*args,**kwargs)
+        # 注册的菜单列表
+        self._menu_list = []
+
+    # 添加菜单
+    def addMenu(self,menu:str):
+        action = self.addAction(menu)
+        self.addAction(action)
+        self._menu_list.append({
+            "menu":menu,
+            "action":action
+        })
+
+    def addMenus(self,menus:list):
+        for menu in menus:
+            self.addMenu(menu)
+
+    # 获取菜单对象
+    def getMenuObj(self,menu:str)->list:
+        for v in self._menu_list:
+            if v["menu"] == menu:
+                return v["action"]
+
+    # 连接信号槽
+    def connect(self,menu:str,trigger_func=None):
+        self.getMenuObj(menu).triggered.connect(trigger_func)
+
+    # 禁用/启用指定功能
+    def disableMenu(self,menus:list,enable:bool=True):
+        for menu in menus:
+            self.getMenuObj(menu).setEnabled(enable)
+
+    # 隐藏获取显示指定功能
+    def hideMenu(self,menus:list,hide:bool=True):
+        for menu in menus:
+            self.getMenuObj(menu).setVisible(hide)
 
 # 元组模拟dict的get
 def getTuple(data,index):
@@ -41,10 +80,12 @@ class IpTree(QTreeWidget):
 
         self.__node = dict()
         #  处理机器的类
-        self.__mchine = MachineDispose()
+        self.__machine = MachineDispose()
 
         self.setHeaderLabels(["IP","范围"])
+        # 注册右键菜单
         self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.menu_Event)
         self.myEvent()
         self.Init()
 
@@ -58,8 +99,11 @@ class IpTree(QTreeWidget):
         return icon
 
     # 构建树
-    def structData(self)->dict:
-        machine_data = self.__mchine.get_machine_addr_all(sort=False)
+    def structData(self,refresh:bool=False)->dict:
+        if refresh == False:
+            machine_data = self.__machine.get_machine_addr_all(sort=False)
+        else:
+            machine_data = self.__machine.refresh(sort=False)
         tree = dict()
         for data in machine_data:
             ip = data[0]
@@ -122,9 +166,22 @@ class IpTree(QTreeWidget):
             print(number)
             print(index.data())
 
-
     def myEvent(self):
         self.doubleClicked.connect(self.ip_spcre_Event)
+
+    def refresh(self):
+        self.clear()
+        self.createTree(self.structData(True))
+
+    # 菜单事件
+    def menu_Event(self):
+        # 创建菜单
+        menu = RightMenu()
+        # 添加菜单项
+        menu.addMenu("刷新")
+        menu.connect("刷新",self.refresh)
+        menu.exec_(QCursor.pos())
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     tree = IpTree()

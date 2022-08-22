@@ -23,8 +23,8 @@ class Tab(TabBar):
 
 
         self.Init()
-        # self.myEvent()
-        self.addTab(QWidget(), "tab1")
+        self.myEvent()
+        # self.addTab("tab1")
         # self.addTab(QWidget(), "tab2")
         # print(self.getShowTab())
         # self.focusTab("tab2")
@@ -33,17 +33,21 @@ class Tab(TabBar):
     def getTab(self,name)->QWidget:
         return self.__tab[name][name]
 
-    def addTab(self, widget: QWidget, name: str,pos:int=None) -> None:
-        self.__tab[name] = {name:widget,"state":True}
-        new_win = QWidget()
+    def addTab(self, widget: str = None, number: str = "", pos: QWidget = None) -> None:
+
+        if widget is None:
+            new_win = QWidget()
+        else:
+            new_win = widget
+        self.__tab[number] = {number: new_win, "state": True}
         # gridLayout = QGridLayout(new_win)
         # gridLayout.setContentsMargins(0, 0, 0, 0)
         # gridLayout.setSpacing(0)
         # gridLayout.addWidget(widget, 0, 0, 1, 1)
-        if pos is None:
-            super(Tab, self).addTab(new_win, name)
+        if number is None:
+            super(Tab, self).addTab(new_win, number)
         else:
-            super(Tab, self).addTab(new_win, name,pos)
+            super(Tab, self).addTab(new_win, number,pos)
 
 
         print(self.__tab)
@@ -96,7 +100,7 @@ class Tab(TabBar):
                     break
             win = self.getTab(name)
             self.delete(name)
-            self.addTab(win,name,pos)
+            self.addTab(win, name, pos)
 
     # 获取当前显示的tab
     def getShowTab(self)->list:

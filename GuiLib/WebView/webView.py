@@ -6,7 +6,7 @@
 import sys
 
 from PyQt5.QtCore import QUrl, QCoreApplication, Qt
-from PyQt5.QtWebEngineWidgets import QWebEngineView,QWebEnginePage,QWebEngineSettings
+from PyQt5.QtWebEngineWidgets import QWebEngineView,QWebEnginePage,QWebEngineSettings,QWebEngineProfile
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
 class WebEnginePage(QWebEnginePage):
@@ -21,6 +21,11 @@ class WebView(QWebEngineView):
         super().__init__(*args,**kwargs)
         # 锁
         self.lock = {"state": True, "id": "0", "treeitem": None}
+        # 缓存设置
+        # self.profile = QWebEngineProfile("s",self)
+        # self.profile.defaultProfile().persistentStoragePath()
+        # 从缓存中读取网页
+        # self.settings = QWebEngineSettings.globalSettings()
         # 这个证书一定要放在这里,放在其他地方网页无法显示
         self.web = WebEnginePage()
 
@@ -49,12 +54,19 @@ class WebView(QWebEngineView):
         if self.islock():
             super().load(QUrl(url))
             self.locked()
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     webview = WebView()
+    # 设置cookie
+    # webview.profile.setHttpCookieStore(webview.profile.cookieStore())
 
+    # print(default_profile.cachePath())
+    # d = default_profile.cookieStore()
+    # d.deleteAllCookies()
+    # default_profile.setCachePath(r"D:\code\LookM\cache\cookie")
+    # default_profile.setPersistentStoragePath(r"D:\code\LookM\cache\storage")
     webview.setPage(webview.web)
-    webview.settings().setAttribute(QWebEngineSettings.JavascriptEnabled, True)
     webview.load("https://198.204.247.82/ui/")
     webview.show()
     sys.exit(app.exec_())

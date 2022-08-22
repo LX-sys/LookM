@@ -80,13 +80,14 @@ class MachineDispose:
         write_cache_ip(info)
         # 更新可用机器
         self.__mchine_ip = self.get_machine_addr_all(is_delete=False,sort=True)
+        print(data)
         return data
 
     # 获取所有机器的ip和范围
     def get_machine_addr_all(self,is_delete:bool=None,sort:bool=True)->list:
         temp = False
-        if not os.path.isfile(cache_file):
-            open(cache_file, "w").close()  # 创建文件
+        if not os.path.isfile(cache_path):
+            open(cache_path, "w").close()  # 创建文件
             temp = True
         else:
             data = read_cache_ip()
@@ -124,4 +125,6 @@ class MachineDispose:
 
 if __name__ == '__main__':
     m = MachineDispose()
-    print(m.number_to_ip("1"))
+    while True:
+        s = input("请输入机器编号:")
+        m.refresh()

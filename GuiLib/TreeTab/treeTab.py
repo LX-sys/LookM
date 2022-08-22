@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QSplitter
 from PyQt5.QtWebEngineWidgets import QWebEngineView,QWebEnginePage,QWebEngineSettings
 from GuiLib.Tree.IpTree import IpTree
 from GuiLib.tabbar.tabBar import TabBar
+# from GuiLib.Tab.tab import Tab
 
 from core.mchine import MachineDispose
 
@@ -50,7 +51,7 @@ class TreeTab(QWidget):
 
     def addTab(self,text:str,url:str) -> None:
         # print(name)
-        self.tab.addTab(text=text,url=url)
+        self.tab.addTab(number=text, url=url)
 
     def ip_Event(self,ip_scope) -> None:
         print("-->",ip_scope)
