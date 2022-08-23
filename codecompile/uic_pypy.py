@@ -1,5 +1,5 @@
 
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QMainWindow,QWidget
 import re
 '''
     uic生成的代码重新构建为可执行代码
@@ -91,5 +91,5 @@ def deal_Code(filepath:str,c_name:str="UI",inheritance_name:str="QMainWindow",mo
     return code
 
 
-deal_Code(r"D:\code\LookM\UI\mainui.py",
-          outfile=r"D:\code\LookM\UI\mainui.py", c_name="LookMachine", inheritance_name="QMainWindow")
+deal_Code(r"D:\code\LookM\UI\jpgUI.py",
+          outfile=r"D:\code\LookM\UI\jpgUI.py", c_name="Jpg", inheritance_name="QWidget")
