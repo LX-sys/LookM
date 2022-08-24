@@ -21,6 +21,52 @@ def url(ip):
 def machineIDUrl(ip,id):
     return  "https://{}/ui/#/host/vms/{}".format(ip,id)
 
+# 返回登录的Js
+def loginJs(user,pwd):
+    js_ = '''
+    function isName(){
+        var user=document.getElementById("username");
+        if(user){
+            var c = document.getElementsByName("loginForm");
+            if(!c){
+                return ""
+            }
+            c[0].setAttribute("class","ng-valid ng-dirty ng-valid-parse");
+            var user=document.getElementById("username");
+            user.value = "<user>";
+            user.setAttribute("class","margeTextInput ng-valid ng-touched ng-dirty ng-valid-parse");
+            let input = document.getElementById('username');
+            let event = new Event('input', { bubbles: true });
+            let tracker = input._valueTracker;
+            if (tracker) {
+                tracker.setValue('');
+            }
+            input.dispatchEvent(event);
+
+            var pwd=document.getElementById("password");
+            pwd.value = "<pwd>";
+            pwd.setAttribute("class","margeTextInput ng-valid ng-dirty ng-valid-parse ng-touched");
+            input = document.getElementById('password');
+            event = new Event('input', { bubbles: true });
+            tracker = input._valueTracker;
+            if (tracker) {
+                tracker.setValue('');
+            }
+            input.dispatchEvent(event);
+            var btnsubmit = document.getElementById("submit");
+            // 移除登录的不可见属性
+            btnsubmit.removeAttribute("disabled");
+            btnsubmit.click();
+            return true;
+        }else{
+            return false;
+        }
+        return false;
+    }
+    isName();'''.replace("<user>", user)
+    js_ = js_.replace("<pwd>", pwd)
+    return js_
+
 class TreeTab(QWidget):
     def __init__(self,*args,**kwargs) -> None:
         super(TreeTab, self).__init__(*args,**kwargs)
@@ -45,35 +91,37 @@ class TreeTab(QWidget):
         # 调整布局
         tree_w = int(self.width() * 0.25)
         self.splitter.setSizes([tree_w, self.width() - tree_w])
-
         # self.tree.createTree({("69.30.245.162", "1-20", True): ["450", "123"]})
 
 
     def addTab(self,text:str,url:str) -> None:
-        # print(name)
         self.tab.addTab(number=text, url=url)
 
     def ip_Event(self,ip_scope) -> None:
         print("-->",ip_scope)
-        # ip = ip_scope[0]
-        # number = int(ip_scope[1])
-        # machine_number = int(ip_scope[2])  # 机器数量
-        # # 获取真实的机器访问id
-        # real_id = number % machine_number
-        # if real_id >1:
-        #     real_id += 1
-        # self.addTab(text=str(number),url=machineIDUrl(ip,real_id))
-        # print(url(ip))
-        # self.addTab(text=str(number),url=url(ip))
-        # print("url:",machineIDUrl(ip,real_id))
-
-        # print(self.machine.url(ip_scope[1]))
         number = ip_scope[1]
         url=self.machine.machineIDUrl(number)
         self.addTab(text=number,url=url)
 
+    # 登录实现
+    def login(self,info:dict):
+        number = info["number"]
+        user = info.get("user")
+        pwd = info.get("pwd")
+        browser = self.tab.get_machine(number)
+        if browser:
+            # 注入js登录
+            browser.page().runJavaScript(loginJs(user,pwd))
+
+    # 双击tab在tree节点上定位
+    def tabDouble(self,number:str):
+        self.tree.textExpanded(number)
+
     def myEvent(self):
         self.tree.ipScope.connect(self.ip_Event)
+        self.tree.logined.connect(self.login)
+        # -----
+        self.tab.tabDoubleed.connect(self.tabDouble)
         # self.tree.filenameedit.connect(self.addTab)
 
 if __name__ == '__main__':

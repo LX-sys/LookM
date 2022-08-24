@@ -6,6 +6,7 @@
 import copy
 import re
 import sys,os
+from configparser import ConfigParser
 from PyQt5 import QtGui
 from PyQt5.QtCore import QPoint, Qt, pyqtSignal, QSize, QModelIndex
 from PyQt5.QtGui import QMouseEvent, QCursor,QIcon,QColor
@@ -19,6 +20,10 @@ from core.mchine import MachineDispose
 # 路径
 RootPath = os.path.abspath(os.path.dirname(__file__))
 icon_Path = os.path.join(RootPath, "icon")
+
+# 配置文件的路径
+Config_Path = os.path.join(os.path.dirname(os.path.dirname(RootPath)), "Config")
+
 
 # 自定义右键菜单
 class RightMenu(QMenu):
@@ -74,6 +79,8 @@ class IpTree(QTreeWidget):
 
     # 发送 ip和 范围
     ipScope = pyqtSignal(tuple)
+    # 登录信号
+    logined = pyqtSignal(dict)
 
     def __init__(self,*args,**kwargs):
         super(IpTree,self).__init__(*args,**kwargs)
@@ -81,6 +88,10 @@ class IpTree(QTreeWidget):
         self.__node = dict()
         #  处理机器的类
         self.__machine = MachineDispose()
+        # 配置实例化,读取配置
+        self._config = ConfigParser()
+        print(os.path.join(Config_Path, "machine.ini"))
+        self._config.read(os.path.join(Config_Path, "machine.ini"), encoding="utf-8")
 
         self.setHeaderLabels(["IP","范围"])
         # 注册右键菜单
@@ -155,6 +166,10 @@ class IpTree(QTreeWidget):
 
     def ip_spcre_Event(self,index:QModelIndex):
         number = index.data()
+        # number点击后有可能为空,直接用当前节点的text
+        if number is None:
+            number = self.currentItem().text(0)
+
         if number and number.isdigit():
             ip = self.currentItem().parent().text(0)
             machine_number = self.currentItem().parent().childCount() # 机器总数
@@ -169,9 +184,53 @@ class IpTree(QTreeWidget):
     def myEvent(self):
         self.doubleClicked.connect(self.ip_spcre_Event)
 
+    # 获取所有子节点
+    def getAllChildNode(self)->list:
+        node = []
+        item_list = self.getAllParentNode()
+        for item in item_list:
+            child_count = item.childCount()
+            node.extend(
+                [item.child(i) for i in range(child_count)]
+            )
+        return node
+
+    # 获取所有父节点
+    def getAllParentNode(self)->list:
+        item_count = self.topLevelItemCount()
+        return [self.topLevelItem(item) for item in range(item_count)]
+
+    # 根据文本获取树节点
+    def getNode(self,text:str)->QTreeWidgetItem:
+        for item in self.getAllChildNode():
+            if item.text(0) == text:
+                return item
+
+    # 右键刷新
     def refresh(self):
         self.clear()
         self.createTree(self.structData(True))
+
+    # 右键登录
+    def login(self):
+        number = self.currentItem().text(0)
+        if number.isdigit(): # 只有数字才能登录
+            # 从配置文件中读取登录信息
+            user = self._config.get("Machine","user")
+            pwd = self._config.get("Machine","pwd")
+            self.logined.emit({"number":number,"user":user,"pwd":pwd})
+
+    # 根据文本展开节点,并选中
+    def textExpanded(self,text:str):
+        item = self.getNode(text)
+        parent_item = item.parent()
+        parent_item.setExpanded(True)
+        self.setCurrentItem(item)
+
+    # 全部展开/收起
+    def allExpanded(self,expanded:bool=False):
+        for item in self.getAllParentNode():
+            item.setExpanded(expanded)
 
     # 菜单事件
     def menu_Event(self):
@@ -180,6 +239,10 @@ class IpTree(QTreeWidget):
         # 添加菜单项
         menu.addMenu("刷新")
         menu.connect("刷新",self.refresh)
+        menu.addMenu("登录")
+        menu.connect("登录",self.login)
+        menu.addMenu("全部收起")
+        menu.connect("全部收起",self.allExpanded)
         menu.exec_(QCursor.pos())
 
 if __name__ == '__main__':

@@ -98,6 +98,8 @@ class MyTabBar(QTabBar):
 
 
 class TabBar(QTabWidget):
+    # tab双击信号
+    tabDoubleed = pyqtSignal(str)
 
     def __init__(self, *args,**kwargs) -> None:
         super().__init__(*args,**kwargs)
@@ -117,11 +119,6 @@ class TabBar(QTabWidget):
         win.addDockWidget(Qt.RightDockWidgetArea, self.docw)
         # self.addTab(number="tabbar")
         # print(self.__machine)
-        # self.tab_close_Event(0)
-        # print(self.__machine)
-        # self.addTab(number="tabbar")
-        # print(self.__machine)
-        # self.addTab(number="dsad")
 
         self.myEvent()
 
@@ -140,7 +137,9 @@ class TabBar(QTabWidget):
 
     # 获取number的窗口
     def get_machine(self,number:str)->WebView:
-        return self.__machine[number]["web"]
+        if self.__machine.get(number,None) is None:
+            return None
+        return self.__machine[number].get("web")
 
     def addTab(self, widget: QWidget=None, number: str="",pos:int=None,url=None):
         win = QMainWindow()
@@ -185,9 +184,17 @@ class TabBar(QTabWidget):
         self.removeTab(index)
         self.saveMachineSate(number,None,False)
 
+    # tab双击事件
+    def tabDouble(self,index:int):
+        number = self.tabText(index)
+        if number:
+            self.tabDoubleed.emit(number)
+
     def myEvent(self):
         # self.tab.draged.connect(self.tabDragEvent)
         self.tabCloseRequested.connect(self.tab_close_Event)
+        # tab点击事件
+        self.tabBarDoubleClicked.connect(self.tabDouble)
 
 
 if __name__ == '__main__':

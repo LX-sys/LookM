@@ -39,9 +39,10 @@ def is_exceed(date_str:str):
 
 # 缓存ip
 def write_cache_ip(data:dict)->None:
-    print("=======")
+    print("缓存中...")
     with open(cache_path, "w") as f:
         json.dump(data, f)
+    print("缓存完成...")
 
 # 读取缓存ip
 def read_cache_ip()->dict:
@@ -80,7 +81,6 @@ class MachineDispose:
         write_cache_ip(info)
         # 更新可用机器
         self.__mchine_ip = self.get_machine_addr_all(is_delete=False,sort=True)
-        print(data)
         return data
 
     # 获取所有机器的ip和范围

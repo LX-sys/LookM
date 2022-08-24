@@ -126,38 +126,41 @@ class CompareImage:
         pass
 
     def compare(self,img:Jpg,err_template_img:Jpg):
-        pass
-        # for img_path in img.getImageALl():
-        #     img = cv2.imread(img_path)
-        #     acq_list = [] # 相识值列表
-        #     for t in err_template_img.getImageALl():
-        #         err_t = cv2.imread(t)
-        #         hash1 = aHash(img)
-        #         hash2 = aHash(err_t)
-        #         acq_list.append(cmpHash(hash1, hash2))
-        #     max_acq = max(acq_list)
-        #     if max_acq > 0.94 and max_acq < 0.97:
-        #         print(img_path,"==>相识度",max_acq)
-                    # print("相似")
-                #     return True
-                # else:
-                #     # print("不相似")
-                #     return False
-
+        for img_path in img.getImageALl():
+            img = cv2.imread(img_path)
+            acq_list = [] # 相识值列表
+            for t in err_template_img.getImageALl():
+                # 具体比较图片相识算法
+                pass
 
 if __name__ == '__main__':
-    j = CompareImage()
+    # err_img = cv2.imread(r"D:\code\LookM\core\Jpg\error_template\7.jpg")
+    # 读入原始图像
+    origineImage = cv2.imread(r"D:\code\LookM\core\Jpg\error_template\7.jpg")
+    # 图像灰度化
+    image = cv2.cvtColor(origineImage, cv2.COLOR_BGR2GRAY)
+    # 将图片二值化
+    retval, img = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY_INV)
+    print(retval)
+    cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    cv2.imshow('binary', img)
 
-    jpg = Jpg()
-    err_jpg = Jpg()
-    # 添加图片读取目录
-    jpg.addImageReadFolder([r"D:\lookm\1",r"D:\lookm\2"])
-    err_jpg.addImageReadFolder([r"D:\code\LookM\core\Jpg\error_template"])
-    # 加载图片
-    jpg.loadImage()
-    err_jpg.loadImage()
+    cv2.waitKey()
 
-    j.compare(jpg, err_jpg)
+
+
+    # j = CompareImage()
+    #
+    # jpg = Jpg()
+    # err_jpg = Jpg()
+    # # 添加图片读取目录
+    # jpg.addImageReadFolder([r"D:\lookm\1",r"D:\lookm\2"])
+    # err_jpg.addImageReadFolder([r"D:\code\LookM\core\Jpg\error_template"])
+    # # 加载图片
+    # jpg.loadImage()
+    # err_jpg.loadImage()
+    #
+    # j.compare(jpg, err_jpg)
 
     r'''
         D:\lookm\1\067_41-80.jpg  --> 错误图片
@@ -172,3 +175,5 @@ if __name__ == '__main__':
         D:\lookm\2\133_121-160.jpg  --> 不同错误图片
         (3, 7, 1881, 1054)
     '''
+    # while True:
+    #     pass
