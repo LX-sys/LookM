@@ -3,26 +3,29 @@
 # @author:LX
 # @file:IpTree.py
 # @software:PyCharm
-import copy
-import re
 import sys,os
-from configparser import ConfigParser
-from PyQt5 import QtGui
-from PyQt5.QtCore import QPoint, Qt, pyqtSignal, QSize, QModelIndex
-from PyQt5.QtGui import QMouseEvent, QCursor,QIcon,QColor
-from PyQt5.QtWidgets import (QApplication, QTreeWidget, QMenu, QInputDialog,
-                             QListWidgetItem, QMessageBox, QTreeWidgetItem)
 
-from Database.open_mysql import Machine
-from core.ssh_reset_machine import reset_machine,off_machine,on_machine,state_machine,is_ssl_machine
+from PyQt5.QtCore import Qt, pyqtSignal, QSize, QModelIndex
+from PyQt5.QtGui import QCursor,QIcon,QColor
+from PyQt5.QtWidgets import (QApplication, QTreeWidget, QMenu, QTreeWidgetItem, QHeaderView, QMessageBox)
+
+# from Database.open_mysql import Machine
 from core.mchine import MachineDispose
+from core.ConfigSys import ConfigSys
+
+# 顶级路径
+def rootPath()->str:
+    z_path= os.getcwd().split("LookM")
+    return os.path.join(z_path[0],"LookM")
 
 # 路径
 RootPath = os.path.abspath(os.path.dirname(__file__))
-icon_Path = os.path.join(RootPath, "icon")
+# icon_Path = os.path.join(RootPath, "icon")
+icon_Path = os.path.join(rootPath(),"GuiLib","Tree","icon")
+
 
 # 配置文件的路径
-Config_Path = os.path.join(os.path.dirname(os.path.dirname(RootPath)), "Config")
+Config_Path = os.path.join(rootPath(),"Config","machine.json")
 
 
 # 自定义右键菜单
@@ -81,24 +84,66 @@ class IpTree(QTreeWidget):
     ipScope = pyqtSignal(tuple)
     # 登录信号
     logined = pyqtSignal(dict)
+    # 重新加载窗口
+    reloaded = pyqtSignal(str)
 
     def __init__(self,*args,**kwargs):
         super(IpTree,self).__init__(*args,**kwargs)
 
-        self.__node = dict()
+        self.default_style()
+
+        # 是否显示删除的机器
+        self.__is_show_delete = True
+
+        # self.__node = dict()
         #  处理机器的类
         self.__machine = MachineDispose()
         # 配置实例化,读取配置
-        self._config = ConfigParser()
-        print(os.path.join(Config_Path, "machine.ini"))
-        self._config.read(os.path.join(Config_Path, "machine.ini"), encoding="utf-8")
+        self._config = ConfigSys()
+        self._config.read(Config_Path, encoding="utf-8")
 
         self.setHeaderLabels(["IP","范围"])
+        self.header().setVisible(False)
+        self.header().setSectionResizeMode(0, QHeaderView.Stretch)
+        # 隐藏滚动条
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
         # 注册右键菜单
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.menu_Event)
         self.myEvent()
         self.Init()
+
+    # 默认样式
+    def default_style(self):
+        self.setStyleSheet('''
+QTreeWidget{
+border:none;
+border-right:5px solid rgb(82, 82, 122);
+}
+QTreeWidget::item:hover{
+background-color: rgb(152, 152, 226);
+}
+QTreeWidget::item:selected{
+background-color: rgb(152, 152, 226);
+}
+QTreeWidget::item:hover{
+background-color: rgb(152, 152, 226);
+}
+QTreeWidget::item:selected{
+background-color: rgb(152, 152, 226);
+}
+                ''')
+
+    # 可用的机器列表
+    def usableMachine(self):
+        return self.__machine.usableMachine()
+
+    # 是否显示删除的机器
+    def setIsShowDelete(self,is_show_delete:bool):
+        self.__is_show_delete = is_show_delete
+        # self.refresh()
 
     # 默认图标
     def get_default_icon(self)->QIcon:
@@ -111,6 +156,11 @@ class IpTree(QTreeWidget):
 
     # 构建树
     def structData(self,refresh:bool=False)->dict:
+        '''
+
+        :param refresh:   是否刷新
+        :return:
+        '''
         if refresh == False:
             machine_data = self.__machine.get_machine_addr_all(sort=False)
         else:
@@ -122,8 +172,9 @@ class IpTree(QTreeWidget):
             is_delete = data[2]
             s, e = spcre.split("-")
             s, e = int(s), int(e)+1
-            if is_delete == 1:
-                tree[(ip, spcre,IpTree.RED)] = [str(i) for i in range(s, e)]
+            if is_delete == 1: # 删除的机器
+                if self.__is_show_delete:
+                    tree[(ip, spcre,IpTree.RED)] = [str(i) for i in range(s, e)]
             else:
                 tree[(ip, spcre)] = [str(i) for i in range(s, e)]
         return tree
@@ -132,6 +183,7 @@ class IpTree(QTreeWidget):
         # 这里不能直接传QColor(255,0,0),但是可以传元组
         # print(self.structData())
         # self.createTree({("198.204.247.82", "1-40",IpTree.BLUE): ["450", "123"]})
+        self.setIsShowDelete(False)
         self.createTree(self.structData())
 
     def createTree(self, data: dict,p_Item: QTreeWidgetItem = None):
@@ -218,19 +270,27 @@ class IpTree(QTreeWidget):
             # 从配置文件中读取登录信息
             user = self._config.get("Machine","user")
             pwd = self._config.get("Machine","pwd")
+            print(user,pwd)
             self.logined.emit({"number":number,"user":user,"pwd":pwd})
 
     # 根据文本展开节点,并选中
     def textExpanded(self,text:str):
         item = self.getNode(text)
-        parent_item = item.parent()
-        parent_item.setExpanded(True)
-        self.setCurrentItem(item)
+        if item:
+            parent_item = item.parent()
+            parent_item.setExpanded(True)
+            self.setCurrentItem(item)
 
     # 全部展开/收起
     def allExpanded(self,expanded:bool=False):
         for item in self.getAllParentNode():
             item.setExpanded(expanded)
+
+    # 重新加载窗口
+    def reload(self):
+        number = self.currentItem().text(0)
+        if number.isdigit():
+            self.reloaded.emit(number)
 
     # 菜单事件
     def menu_Event(self):
@@ -243,6 +303,8 @@ class IpTree(QTreeWidget):
         menu.connect("登录",self.login)
         menu.addMenu("全部收起")
         menu.connect("全部收起",self.allExpanded)
+        menu.addMenu("重新加载窗口")
+        menu.connect("重新加载窗口",self.reload)
         menu.exec_(QCursor.pos())
 
 if __name__ == '__main__':
