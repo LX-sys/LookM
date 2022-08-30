@@ -6,12 +6,11 @@
 import sys
 from PyQt5 import QtGui
 from PyQt5.QtCore import QPoint, Qt, pyqtSignal, QCoreApplication
-from PyQt5.QtGui import QMouseEvent
-from PyQt5.QtWebEngineWidgets import QWebEngineView,QWebEnginePage,QWebEngineSettings
+from PyQt5.QtWebEngineWidgets import QWebEngineSettings
 from PyQt5.QtWidgets import (QApplication, QTabBar, QWidget,QTabWidget,QGridLayout,QFrame,
                              QDockWidget,QMainWindow)
 
-from GuiLib.WebView.webView import WebView,WebEnginePage
+from GuiLib.WebView.webView import WebView
 '''
 可移动TabBar
 '''
@@ -25,7 +24,7 @@ class MyQDockWidget(QDockWidget):
 
         self.lock = True
         self.setContentsMargins(0,0,0,0)
-        self.defaultStyleSheet()
+        # self.defaultStyleSheet()
         # 禁止关闭
         self.setFeatures(QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
         # self.setTitleBarWidget(QWidget())
@@ -64,7 +63,7 @@ class MyQDockWidget(QDockWidget):
 
 
 class MyTabBar(QTabBar):
-    draged = pyqtSignal(bool)
+    draged = pyqtSignal(bool) # 拖拽
 
     def __init__(self, *args,**kwargs) -> None:
         super().__init__(*args,**kwargs)
@@ -100,10 +99,29 @@ class MyTabBar(QTabBar):
 class TabBar(QTabWidget):
     # tab双击信号
     tabDoubleed = pyqtSignal(str)
+    # 重新加载窗口
+    reloadMachineed = pyqtSignal(dict)
+
 
     def __init__(self, *args,**kwargs) -> None:
         super().__init__(*args,**kwargs)
 
+
+        self.setStyleSheet('''
+QTabWidget::pane{
+background-color: rgb(152, 152, 226);
+}
+QTabWidget::pane{
+background-color: rgb(152, 152, 226);
+}
+QTabBar::tab{
+	background-color: rgb(58, 58, 173);
+	height:28;
+}
+QTabBar::tab:hover,QTabBar::tab:selected{
+	background-color: rgb(85, 85, 255);
+}
+        ''')
         # self.tab_list = []
         self.tab = MyTabBar()
         self.setTabBar(self.tab)
@@ -139,7 +157,12 @@ class TabBar(QTabWidget):
     def get_machine(self,number:str)->WebView:
         if self.__machine.get(number,None) is None:
             return None
-        return self.__machine[number].get("web")
+        return self.__machine[number].get("web",None)
+
+    # 重新加载窗口
+    def reload_machine(self,number:str,url:str):
+        if self.get_machine(number):
+            self.get_machine(number).load(url)
 
     def addTab(self, widget: QWidget=None, number: str="",pos:int=None,url=None):
         win = QMainWindow()
@@ -180,7 +203,6 @@ class TabBar(QTabWidget):
     # tab关闭
     def tab_close_Event(self,index:int):
         number = self.tabText(index)
-        print(number)
         self.removeTab(index)
         self.saveMachineSate(number,None,False)
 

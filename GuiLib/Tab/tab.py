@@ -4,10 +4,8 @@
 # @file:tab.py
 # @software:PyCharm
 import sys
-from PyQt5 import QtGui
-from PyQt5.QtCore import QPoint, Qt,pyqtSignal
-from PyQt5.QtGui import QMouseEvent
-from PyQt5.QtWidgets import (QApplication, QTabWidget, QWidget, QMainWindow, QWidget, QPushButton, QGridLayout)
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtWidgets import (QApplication, QWidget)
 
 from GuiLib.tabbar.tabBar import TabBar
 

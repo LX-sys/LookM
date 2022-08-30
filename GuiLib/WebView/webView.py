@@ -5,9 +5,10 @@
 # @software:PyCharm
 import sys
 
-from PyQt5.QtCore import QUrl, QCoreApplication, Qt
-from PyQt5.QtWebEngineWidgets import QWebEngineView,QWebEnginePage,QWebEngineSettings,QWebEngineProfile
+from PyQt5.QtCore import QUrl
+from PyQt5.QtWebEngineWidgets import QWebEngineView,QWebEnginePage
 from PyQt5.QtWidgets import QApplication, QMessageBox
+
 
 class WebEnginePage(QWebEnginePage):
 
@@ -58,14 +59,6 @@ class WebView(QWebEngineView):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     webview = WebView()
-    # 设置cookie
-    # webview.profile.setHttpCookieStore(webview.profile.cookieStore())
-
-    # print(default_profile.cachePath())
-    # d = default_profile.cookieStore()
-    # d.deleteAllCookies()
-    # default_profile.setCachePath(r"D:\code\LookM\cache\cookie")
-    # default_profile.setPersistentStoragePath(r"D:\code\LookM\cache\storage")
     webview.setPage(webview.web)
     webview.load("https://198.204.247.82/ui/")
     webview.show()

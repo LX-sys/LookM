@@ -7,10 +7,12 @@ import sys
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QSplitter
-from PyQt5.QtWebEngineWidgets import QWebEngineView,QWebEnginePage,QWebEngineSettings
 from GuiLib.Tree.IpTree import IpTree
 from GuiLib.tabbar.tabBar import TabBar
-# from GuiLib.Tab.tab import Tab
+# ----
+import pymysql
+import paramiko
+
 
 from core.mchine import MachineDispose
 
@@ -77,6 +79,9 @@ class TreeTab(QWidget):
         self.splitter.setOrientation(Qt.Horizontal)
         self.gbox.addWidget(self.splitter)
 
+        self.gbox.setContentsMargins(0, 0, 0, 0)
+        self.splitter.setHandleWidth(0)
+
         # 树,tab,webview
         self.tree = IpTree(self.splitter)
         self.tab= TabBar(self.splitter)
@@ -87,12 +92,35 @@ class TreeTab(QWidget):
         self.myEvent()
         self.Init()
 
+    # 返回可用的机器列表
+    def usableMachine(self)->list:
+        return self.tree.usableMachine()
+
+    # 隐藏/显示树
+    def visTree(self,hide:bool=True):
+        if hide:
+            self.splitter.setSizes([0, self.width()])
+        else:
+            tree_w = int(self.width() * 0.25)
+            self.splitter.setSizes([tree_w, self.width() - tree_w])
+
     def Init(self) -> None:
+        # 初始大小
+        self.resize(1200, 800)
         # 调整布局
-        tree_w = int(self.width() * 0.25)
-        self.splitter.setSizes([tree_w, self.width() - tree_w])
+        self.visTree(False)
+        # tree_w = int(self.width() * 0.25)
+        # self.splitter.setSizes([tree_w, self.width() - tree_w])
         # self.tree.createTree({("69.30.245.162", "1-20", True): ["450", "123"]})
 
+    # 打开机器
+    def openMachine(self,number:str):
+        if self.machine.is_exist(number):
+            self.tabDouble(number)
+            url = self.machine.machineIDUrl(number)
+            self.addTab(text=number, url=url)
+            return 200
+        return None
 
     def addTab(self,text:str,url:str) -> None:
         self.tab.addTab(number=text, url=url)
@@ -117,9 +145,16 @@ class TreeTab(QWidget):
     def tabDouble(self,number:str):
         self.tree.textExpanded(number)
 
+    # 重新加载窗口
+    def reloadMachine(self,number:str):
+        print("重新加载窗口",number)
+        url = self.machine.machineIDUrl(number)
+        self.tab.reload_machine(number,url)
+
     def myEvent(self):
         self.tree.ipScope.connect(self.ip_Event)
         self.tree.logined.connect(self.login)
+        self.tree.reloaded.connect(self.reloadMachine)
         # -----
         self.tab.tabDoubleed.connect(self.tabDouble)
         # self.tree.filenameedit.connect(self.addTab)

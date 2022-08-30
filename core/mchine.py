@@ -10,15 +10,35 @@ import datetime
 from datetime import datetime as dt
 import json
 from Database.open_mysql import Machine
-from core.ssh_reset_machine import reset_machine,off_machine,on_machine,state_machine,is_ssl_machine
+from core.ConfigSys import ConfigSys
 
-# 缓存文件的目录
-RootPath = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-cache_folder = os.path.join(RootPath, "cache")
+# 顶级路径
+def rootPath()->str:
+    z_path= os.getcwd().split("LookM")
+    return os.path.join(z_path[0],"LookM")
+
+# 缓存文件名称
 cache_file = "machine_ip.json"
-# 存储机器的缓存文件
-cache_path = os.path.join(cache_folder, cache_file)
-print(cache_path)
+# mysql账号密码文件名
+mysql_file = "mysql.json"
+
+# 存储机器的缓存路径
+cache_path = os.path.join(rootPath(), "cache", cache_file)
+# mysql配置文件路径
+mysql_config_path = os.path.join(rootPath(), "Config", mysql_file)
+def mysqlInfo():
+    con = ConfigSys()
+    con.read(mysql_config_path)
+    info = {
+        "host":con.get("Mysql","host") ,
+        "port": int(con.get("Mysql","port")),
+        "user": con.get("Mysql","user"),
+        "pwd": con.get("Mysql","pwd"),
+        "db": con.get("Mysql","db")
+    }
+    return info
+
+print(mysqlInfo())
 
 # 当前时间
 def get_now_time()->str:
@@ -40,6 +60,7 @@ def is_exceed(date_str:str):
 # 缓存ip
 def write_cache_ip(data:dict)->None:
     print("缓存中...")
+    print("缓存路径：",cache_path)
     with open(cache_path, "w") as f:
         json.dump(data, f)
     print("缓存完成...")
@@ -52,10 +73,11 @@ def read_cache_ip()->dict:
 
 URL=IP=str
 
+
 class MachineDispose:
     def __init__(self):
         # 连接数据库
-        self.__machine = Machine()
+        self.__machine = Machine(*mysqlInfo().values())
         # 初始化自动调用一次(只返回可用的机器)
         self.__usable_machine = self.get_machine_addr_all(sort=True)
 
@@ -100,12 +122,19 @@ class MachineDispose:
             data = self.refresh(is_delete=is_delete,sort=sort)
         return data
 
+    # 判断机器号是否存在
+    def is_exist(self,number:str)->bool:
+        if self.number_to_ip(number):
+            return True
+        return False
+
     # 通过机器编号获取对应ip
     def number_to_ip(self,number:str)->list:
         for m in self.usableMachine():
             s,e = m[1].split("-")
             if int(s) <= int(number) <= int(e):
                 return m
+        return None
 
     # 通过机器编号获取对应ip的总访问地址
     def url(self,number:str)->URL:
@@ -114,17 +143,18 @@ class MachineDispose:
     # 通过编号返回具体机器的访问url
     def machineIDUrl(self,number)->URL:
         m = self.number_to_ip(number)
-        ip = m[0]
-        s, e = m[1].split("-")
-        s,e= int(s),int(e)
-        scope = e-s+1
-        number = int(number)%scope
-        if number > 1:
-            number+=1
-        return "https://{}/ui/#/host/vms/{}".format(ip,number)
+        if m:
+            ip = m[0]
+            s, e = m[1].split("-")
+            s,e= int(s),int(e)
+            scope = e-s+1
+            number = int(number)%scope
+            if number > 1:
+                number+=1
+            return "https://{}/ui/#/host/vms/{}".format(ip,number)
 
-if __name__ == '__main__':
-    m = MachineDispose()
-    while True:
-        s = input("请输入机器编号:")
-        m.refresh()
+# if __name__ == '__main__':
+#     m = MachineDispose()
+#     while True:
+#         s = input("请输入机器编号:")
+#         m.refresh()
