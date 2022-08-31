@@ -3,13 +3,25 @@
 # @author:LX
 # @file:webView.py
 # @software:PyCharm
+import os
 import sys
-
+import time
 from PyQt5.QtCore import QUrl
-from PyQt5.QtWebEngineWidgets import QWebEngineView,QWebEnginePage
+from PyQt5.QtWebEngineWidgets import QWebEngineView,QWebEnginePage,QWebEngineScript
 from PyQt5.QtWidgets import QApplication, QMessageBox
+import threading
+
+from core.ConfigSys import ConfigSys
+
+# 顶级路径
+def rootPath()->str:
+    z_path= os.getcwd().split("LookM")
+    return os.path.join(z_path[0],"LookM")
 
 
+# 配置文件路径
+Config_Path = os.path.join(rootPath(),"Config","machine.json")
+print(Config_Path)
 class WebEnginePage(QWebEnginePage):
 
     # 忽略证书
@@ -22,12 +34,12 @@ class WebView(QWebEngineView):
         super().__init__(*args,**kwargs)
         # 锁
         self.lock = {"state": True, "id": "0", "treeitem": None}
-        # 缓存设置
-        # self.profile = QWebEngineProfile("s",self)
-        # self.profile.defaultProfile().persistentStoragePath()
-        # 从缓存中读取网页
-        # self.settings = QWebEngineSettings.globalSettings()
-        # 这个证书一定要放在这里,放在其他地方网页无法显示
+        # 自动登录检测
+        self.autoLogin_ = {"state":None,"max_time":45,"interval":1,"cutime":45}
+        # 读取配置
+        self.config = ConfigSys()
+        self.config.read(Config_Path)
+
         self.web = WebEnginePage()
 
     # 跳转功能
@@ -54,7 +66,77 @@ class WebView(QWebEngineView):
 
         if self.islock():
             super().load(QUrl(url))
+            # 自动登录线程
+            self.page().runJavaScript(self.js())  # 这里必须先注入一次才行
+            th = threading.Thread(target=self.autoLogin)
+            th.start()
             self.locked()
+
+
+    def js(self)->str:
+        user = self.config.get("Machine", "user")
+        pwd = self.config.get("Machine", "pwd")
+        js_ = '''
+            function isName(){
+                var user=document.getElementById("username");
+                if(user){
+                    var c = document.getElementsByName("loginForm");
+                    if(!c){
+                        return ""
+                    }
+                    c[0].setAttribute("class","ng-valid ng-dirty ng-valid-parse");
+                    var user=document.getElementById("username");
+                    user.value = "<user>";
+                    user.setAttribute("class","margeTextInput ng-valid ng-touched ng-dirty ng-valid-parse");
+                    let input = document.getElementById('username');
+                    let event = new Event('input', { bubbles: true });
+                    let tracker = input._valueTracker;
+                    if (tracker) {
+                        tracker.setValue('');
+                    }
+                    input.dispatchEvent(event);
+
+                    var pwd=document.getElementById("password");
+                    pwd.value = "<pwd>";
+                    pwd.setAttribute("class","margeTextInput ng-valid ng-dirty ng-valid-parse ng-touched");
+                    input = document.getElementById('password');
+                    event = new Event('input', { bubbles: true });
+                    tracker = input._valueTracker;
+                    if (tracker) {
+                        tracker.setValue('');
+                    }
+                    input.dispatchEvent(event);
+                    var btnsubmit = document.getElementById("submit");
+                    // 移除登录的不可见属性
+                    btnsubmit.removeAttribute("disabled");
+                    btnsubmit.click();
+                    return true;
+                }else{
+                    return false;
+                }
+                return false;
+            }
+            '''.replace("<user>", user)
+        js_ = js_.replace("<pwd>", pwd)
+        return js_
+
+    # 检测,回调
+    def detection(self,b):
+        self.autoLogin_["state"]=b
+
+    # 自动登录
+    def autoLogin(self):
+        while self.autoLogin_["cutime"]:
+            if self.autoLogin_["state"]:
+                print("自动登录成功")
+                break
+            self.page().runJavaScript(self.js())
+            self.page().runJavaScript('isName();', self.detection)
+            time.sleep(self.autoLogin_["interval"])
+            self.autoLogin_["cutime"] -= 1
+
+
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

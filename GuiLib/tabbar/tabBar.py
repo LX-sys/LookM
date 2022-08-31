@@ -40,28 +40,6 @@ class MyQDockWidget(QDockWidget):
     def getWidget(self) -> QWidget:
         return self.dockWidgetContents
 
-    # def mousePressEvent(self, e: QMouseEvent) -> None:
-    #     if e.button() == Qt.LeftButton:
-    #         self._isTracking = True
-    #         self._startPos = QPoint(e.x(), e.y())
-    #     if self.lock and not self.isFloating():
-    #         self.setFloating(True)
-    #         self.lock = False
-    #
-    # def mouseMoveEvent(self, e:QMouseEvent) -> None:
-    #     try:
-    #         self._endPos = e.pos() - self._startPos
-    #         self.move(self.pos() + self._endPos)
-    #     except Exception as e:
-    #         pass
-    #
-    # def mouseReleaseEvent(self, e: QMouseEvent):
-    #     if e.button() == Qt.LeftButton:
-    #         self._isTracking = False
-    #         self._startPos = None
-    #         self.lock = True
-
-
 class MyTabBar(QTabBar):
     draged = pyqtSignal(bool) # 拖拽
 
