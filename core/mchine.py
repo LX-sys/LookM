@@ -26,6 +26,10 @@ mysql_file = "mysql.json"
 cache_path = os.path.join(rootPath(), "cache", cache_file)
 # mysql配置文件路径
 mysql_config_path = os.path.join(rootPath(), "Config", mysql_file)
+
+# 真实机器id映射文件
+real_ip_path = os.path.join(rootPath(), "Config", "ip_map.json")
+
 def mysqlInfo():
     con = ConfigSys()
     con.read(mysql_config_path)
@@ -142,16 +146,31 @@ class MachineDispose:
 
     # 通过编号返回具体机器的访问url
     def machineIDUrl(self,number)->URL:
+        if number is None:  # 修复重新加载时的bug
+            return None
+
+        # 判断文件是否存在
         m = self.number_to_ip(number)
         if m:
             ip = m[0]
+            if os.path.isfile(real_ip_path):
+                print("存在映射文件")
+                con_real = ConfigSys()
+                con_real.read(real_ip_path)
+                id_dict = con_real.get("IP", ip)
+                if id_dict:
+                    number = id_dict.get(number,None)
+                    if number:
+                        return "https://{}/ui/#/host/vms/{}".format(ip, number)
+            # -----------映射文件中没有时,通过计算获取(存在误差)-----------------
             s, e = m[1].split("-")
             s,e= int(s),int(e)
             scope = e-s+1
             number = int(number)%scope
             if number > 1:
-                number+=1
-            return "https://{}/ui/#/host/vms/{}".format(ip,number)
+                number += 1
+            return "https://{}/ui/#/host/vms/{}".format(ip, number)
+
 
 # if __name__ == '__main__':
 #     m = MachineDispose()

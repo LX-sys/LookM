@@ -122,6 +122,10 @@ class TreeTab(QWidget):
             return 200
         return None
 
+    # testtab
+    def testaddTab(self,webview,text="ip映射"):
+        self.tab.addTab(webview,text)
+
     def addTab(self,text:str,url:str) -> None:
         self.tab.addTab(number=text, url=url)
 
@@ -149,7 +153,8 @@ class TreeTab(QWidget):
     def reloadMachine(self,number:str):
         print("重新加载窗口",number)
         url = self.machine.machineIDUrl(number)
-        self.tab.reload_machine(number,url)
+        if url:
+            self.tab.reload_machine(number,url)
 
     def myEvent(self):
         self.tree.ipScope.connect(self.ip_Event)

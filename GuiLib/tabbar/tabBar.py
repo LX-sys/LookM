@@ -147,31 +147,32 @@ QTabBar::tab:hover,QTabBar::tab:selected{
         self.docw = MyQDockWidget()
 
         self.gbox = QGridLayout(self.docw.getWidget())
-        # 如果机器打开过,则直接获取窗口
-        if self.is_machine(number):
-            webview = self.get_machine(number)
-        else:
-            webview = WebView(self.docw)
-            webview.adjustSize()
-            # 忽略证书
-            webview.setPage(webview.web)
-            webview.settings().setAttribute(QWebEngineSettings.JavascriptEnabled, True)
-            if url is None:
-                # webview.load("http://www.baidu.com")
-                webview.load("https://198.204.247.82/ui/")
+        if widget is None:
+            # 如果机器打开过,则直接获取窗口
+            if self.is_machine(number):
+                webview = self.get_machine(number)
             else:
-                webview.load(url)
+                webview = WebView(self.docw)
+                webview.adjustSize()
+                # 忽略证书
+                webview.setPage(webview.web)
+                webview.settings().setAttribute(QWebEngineSettings.JavascriptEnabled, True)
+                if url is None:
+                    # webview.load("http://www.baidu.com")
+                    webview.load("https://198.204.247.82/ui/")
+                else:
+                    webview.load(url)
+            # 保存机器状态
+            self.saveMachineSate(number, webview)
+        else:
+            webview = widget
         self.gbox.addWidget(webview)
         win.addDockWidget(Qt.RightDockWidgetArea, self.docw)
-        # self.tab_list.append(win)
 
         if pos is None:
             super().addTab(win, number)
         else:
             super().insertTab(pos, win, number)
-
-        # 保存机器状态
-        self.saveMachineSate(number,webview)
 
     # 自定义拖拽事件
     def tabDragEvent(self,b:bool):

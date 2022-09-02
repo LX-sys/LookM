@@ -7,6 +7,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from GuiLib.TreeTab.treeTab import TreeTab
 from core.menusys.menuSys import MenuSys
+from GuiLib.WebView.webView import WebView
+
+import threading
 
 
 class Main(QMainWindow):
@@ -72,7 +75,7 @@ class Main(QMainWindow):
     def down_jpg(self,ip):
         print("ip->",ip)
 
-    # 添加table
+    # 添加table,下载图片的
     def addTable(self,ip:str):
         row = self.tableWidget.rowCount()
         self.tableWidget.setRowCount(row+1)
@@ -81,22 +84,76 @@ class Main(QMainWindow):
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         self.tableWidget.setItem(row, 0, item)
         # 添加下载按钮
-        btn_down = QPushButton("下载")
+        btn_down = QPushButton("下载图片")
         btn_down.setStyleSheet('''
         border:none;
         ''')
         btn_down.clicked.connect(lambda :self.down_jpg(ip))
         self.tableWidget.setCellWidget(row, 1, btn_down)
 
+    def login_success_event(self,b,hide_webView):
+        hide_webView.im_map(hide_webView)
+        # 结果
+#         def re_(d):
+#             print("d:",d)
+#         # 这里有问题
+#         print("隐藏浏览器登录成功",b)
+#         js_click='''
+# function clickVM(){
+#     var e = document.getElementsByClassName("inline");
+#     e[3].click();
+# }
+#         '''
+#         hide_webView.page().runJavaScript(js_click)
+#         hide_webView.page().runJavaScript("clickVM();")
+#         print("--><<>")
+#         js_find_ip='''
+# function getIpDict(){
+#     real_id = {};
+#     // 获取机器真实访问id
+#     var tb= document.getElementsByTagName("tbody")[0];
+#     var tb_childs = tb.childNodes;
+#     for(var i=0;i<tb_childs.length;i++){
+#         var tt = tb_childs[i].childNodes[1].childNodes[0];
+#         var title = tt.getAttribute("title");
+#         if(title!="pfsense"){
+#             var real_t = tt.getAttribute("data-moid");
+#             real_id[title]=real_t;
+#         }
+#     }
+#     console.log(real_id);
+#     return 10;
+# }
+#         '''
+#         hide_webView.page().runJavaScript(js_find_ip)
+#         hide_webView.page().runJavaScript("getIpDict();",re_)
+
+
+    # ip映射事件
+    def ip_map_event(self):
+        print("ip_map_event")
+        ip = self.treeTab.usableMachine()[1][0]
+        # for ip in self.treeTab.usableMachine():
+        #     ip = ip[0]
+        # 创建隐藏浏览器
+        url = "https://{}/ui/".format(ip)
+        print(url)
+        hide_webView = WebView()
+        hide_webView.setPage(hide_webView.web)
+        hide_webView.load(url)
+        hide_webView.loginSuccessfuled.connect(lambda b:self.login_success_event(b,hide_webView))
+        self.treeTab.testaddTab(hide_webView)
+
     def myMenu(self):
         self.menu = MenuSys(self)
         self.menu.addMenuHeader(["视图", "设置"])
         self.menu.addMenuChild("视图", ["默认视图", "隐藏左","隐藏右","隐藏左右"])
-        self.menu.addMenuChild("设置", ["进入配置页面","回主页"])
+        self.menu.addMenuChild("设置", ["Ip映射","进入配置页面","回主页"])
         self.menu.connect("视图", "默认视图", lambda: self.defaultView())
         self.menu.connect("视图", "隐藏左", lambda :self.visLeft(True))
         self.menu.connect("视图", "隐藏右", lambda :self.visRight(True))
         self.menu.connect("视图", "隐藏左右", lambda :self.hideLeftRigth())
+        self.menu.connect("设置", "Ip映射", lambda :self.ip_map_event())
         self.menu.connect("设置","进入配置页面",lambda :self.stackedWidget.setCurrentIndex(1))
         self.menu.connect("设置","回主页",lambda :self.stackedWidget.setCurrentIndex(0))
 
@@ -337,7 +394,7 @@ border:1px solid rgb(113, 113, 113);
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        self.setWindowTitle(_translate("self", "self"))
+        self.setWindowTitle(_translate("self", "机器"))
         self.lineEdit_search.setPlaceholderText(_translate("self", "机器编号"))
         self.btn_search.setText(_translate("self", "搜索"))
         self.btn_jpg.setText(_translate("self", "JPG"))

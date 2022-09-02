@@ -46,8 +46,6 @@ class Tab(TabBar):
             super(Tab, self).addTab(new_win, number)
         else:
             super(Tab, self).addTab(new_win, number,pos)
-
-
         print(self.__tab)
 
     def Init(self):
