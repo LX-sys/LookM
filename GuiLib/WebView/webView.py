@@ -275,27 +275,32 @@ class WebView(QWebEngineView):
                     break
 
         # ip映射函数
-        js_find_ip = '''
-        function getIpDict(){
-            real_id = {};
-            // 获取机器真实访问id
-            var tb= document.getElementsByTagName("tbody");
-            if(tb.length==0){
-                return 0;
-            }else{
-                tb=tb[0];
-            }
-            var tb_childs = tb.childNodes;
-            for(var i=0;i<tb_childs.length;i++){
-                var tt = tb_childs[i].childNodes[1].childNodes[0];
-                var title = tt.getAttribute("title");
-                if(title!="pfsense"){
-                    var real_t = tt.getAttribute("data-moid");
-                    real_id[title]=real_t;
-                }
-            }
-            return real_id;
+        js_find_image = '''
+        function getImage(){
+    real_id = {};
+    // 获取机器真实访问id
+    var tb= document.getElementsByTagName("tbody");
+    if(tb.length==0){
+        return 0;
+    }else{
+        tb=tb[0];
+    }
+    var tb_childs = tb.childNodes;
+    for(var i=0;i<tb_childs.length;i++){
+        var tt = tb_childs[i].childNodes[1].childNodes[0];
+        var checkcbox = tb_childs[0].childNodes[0];
+        console.log(checkcbox);
+        var title = tt.getAttribute("title");
+        if(title!="pfsense"){
+            checkcbox.click();
+            // 寻找图片
+            var vm = document.getElementByClassName("vmScreenScrape")[0];
+            var img= vm.childNodes[3];
+            console.log(img);
         }
+    }
+    return real_id;
+}
         '''
         def find_ipCallback(result): # 点击回调函数
             print("ip映射结果:",result,type(result))
@@ -318,7 +323,7 @@ class WebView(QWebEngineView):
 
         th = threading.Thread(target=click,args=(js_click,webView))
         th.start()
-        th_ip = threading.Thread(target=find_ip, args=(js_find_ip, webView))
+        th_ip = threading.Thread(target=find_ip, args=(js_find_image, webView))
         th_ip.start()
         print("线程启动")
 
