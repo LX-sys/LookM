@@ -8,7 +8,7 @@ import sys
 import time
 from PyQt5.QtCore import QUrl,pyqtSignal
 from PyQt5.QtWebEngineWidgets import QWebEngineView,QWebEnginePage,QWebEngineScript
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMessageBox,QProgressBar
 import threading
 
 from core.ConfigSys import ConfigSys
@@ -57,6 +57,8 @@ class WebEnginePage(QWebEnginePage):
 
 class WebView(QWebEngineView):
     loginSuccessfuled = pyqtSignal(bool)
+    ipMapData = pyqtSignal(dict) # 映射成功发送结果
+    ipMapFailure = pyqtSignal() # 映射失败
     def __init__(self, *args,**kwargs) -> None:
         super().__init__(*args,**kwargs)
         # 锁
@@ -67,7 +69,13 @@ class WebView(QWebEngineView):
         self.config = ConfigSys()
         self.config.read(Config_Path)
 
+        # 从外部接收进度条对象
+        self.progress = None  # type:QProgressBar
+
         self.web = WebEnginePage()
+
+    def setProgress(self,progress):
+        self.progress = progress
 
     # 跳转功能
     def createWindow(self, QWebEnginePage_WebWindowType):
@@ -181,6 +189,7 @@ class WebView(QWebEngineView):
                 webView.page().runJavaScript("clickVM();", clickCallback)
                 time.sleep(click_result["interval"])
                 click_result["cu_count"]+=1
+                self.progress.setValue(self.progress.value() + 1)
                 if click_result["cu_count"] == click_result["max_count"]:
                     print("失败")
                     break
@@ -212,6 +221,7 @@ class WebView(QWebEngineView):
             print("ip映射结果:",result,type(result))
             if result:
                 print("ip映射成功:",result)
+                self.ipMapData.emit(result) # 发送信息
                 find_ip_result["state"]=False
 
         def find_ip(js,webView): # 点击函数
@@ -220,15 +230,97 @@ class WebView(QWebEngineView):
                 webView.page().runJavaScript("getIpDict();", find_ipCallback)
                 time.sleep(find_ip_result["interval"])
                 find_ip_result["cu_count"]+=1
+                self.progress.setValue(self.progress.value() + 1)
                 if find_ip_result["cu_count"] == find_ip_result["max_count"]:
                     print("ip映射失败")
+                    self.ipMapFailure.emit()
                     break
 
         th = threading.Thread(target=click,args=(js_click,webView))
         th.start()
         th_ip = threading.Thread(target=find_ip, args=(js_find_ip, webView))
         th_ip.start()
+        print("线程启动")
 
+    def im_dowm_image(self,webView):
+        js_click = '''
+        function clickVM(){
+            var e = document.getElementsByClassName("inline");
+            if(e==null){
+                return 0;
+            }else{
+                e[3].click();
+                return 1;
+            }
+        }
+        '''
+
+        # 局部 全局变量,检测是否点击虚拟机
+        click_result = {"state":True,"max_count":60,"interval":1,"cu_count":0}
+        find_ip_result = {"state":True,"max_count":100,"interval":1,"cu_count":0}
+        def clickCallback(result): # 点击回调函数
+            if result:
+                print("点击虚拟机成功")
+                click_result["state"]=False
+
+        def click(js,webView): # 点击函数
+            while click_result["state"]:
+                webView.page().runJavaScript(js)
+                webView.page().runJavaScript("clickVM();", clickCallback)
+                time.sleep(click_result["interval"])
+                click_result["cu_count"]+=1
+                self.progress.setValue(self.progress.value() + 1)
+                if click_result["cu_count"] == click_result["max_count"]:
+                    print("失败")
+                    break
+
+        # ip映射函数
+        js_find_ip = '''
+        function getIpDict(){
+            real_id = {};
+            // 获取机器真实访问id
+            var tb= document.getElementsByTagName("tbody");
+            if(tb.length==0){
+                return 0;
+            }else{
+                tb=tb[0];
+            }
+            var tb_childs = tb.childNodes;
+            for(var i=0;i<tb_childs.length;i++){
+                var tt = tb_childs[i].childNodes[1].childNodes[0];
+                var title = tt.getAttribute("title");
+                if(title!="pfsense"){
+                    var real_t = tt.getAttribute("data-moid");
+                    real_id[title]=real_t;
+                }
+            }
+            return real_id;
+        }
+        '''
+        def find_ipCallback(result): # 点击回调函数
+            print("ip映射结果:",result,type(result))
+            if result:
+                print("ip映射成功:",result)
+                self.ipMapData.emit(result) # 发送信息
+                find_ip_result["state"]=False
+
+        def find_ip(js,webView): # 点击函数
+            while find_ip_result["state"]:
+                webView.page().runJavaScript(js)
+                webView.page().runJavaScript("getIpDict();", find_ipCallback)
+                time.sleep(find_ip_result["interval"])
+                find_ip_result["cu_count"]+=1
+                self.progress.setValue(self.progress.value() + 1)
+                if find_ip_result["cu_count"] == find_ip_result["max_count"]:
+                    print("ip映射失败")
+                    self.ipMapFailure.emit()
+                    break
+
+        th = threading.Thread(target=click,args=(js_click,webView))
+        th.start()
+        th_ip = threading.Thread(target=find_ip, args=(js_find_ip, webView))
+        th_ip.start()
+        print("线程启动")
 
     # 自动登录
     def autoLogin(self):
@@ -242,6 +334,8 @@ class WebView(QWebEngineView):
             self.page().runJavaScript('isName();', self.detection)
             time.sleep(self.autoLogin_["interval"])
             self.autoLogin_["cutime"] -= 1
+            # 进度条增加
+            self.progress.setValue(self.progress.value()+1)
 
 
 

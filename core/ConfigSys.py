@@ -53,6 +53,12 @@ class ConfigSys:
         if section in self._config:
             return self._config[section].get(key)
 
+    def set(self,section,key,data,encoding="utf-8"):
+        if self._config[section].get(key,None) is None:
+            self._config[section][key] = dict()
+        self._config[section][key]=data
+        writeConfig(self.path(),self._config,encoding=encoding)
+
     def section(self)->list:
         return list(self._config.keys())
 

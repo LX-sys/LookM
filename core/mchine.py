@@ -153,6 +153,7 @@ class MachineDispose:
         m = self.number_to_ip(number)
         if m:
             ip = m[0]
+            print(ip)
             if os.path.isfile(real_ip_path):
                 print("存在映射文件")
                 con_real = ConfigSys()

@@ -1,20 +1,31 @@
 # -*- coding: utf-8 -*-
 
-
+import os
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QTableWidgetItem, QPushButton, QMessageBox
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from GuiLib.TreeTab.treeTab import TreeTab
 from core.menusys.menuSys import MenuSys
+from core.ip_map_UI import IpMap
 from GuiLib.WebView.webView import WebView
 
-import threading
+
+# 顶级路径
+def rootPath()->str:
+    z_path= os.getcwd().split("LookM")
+    return os.path.join(z_path[0],"LookM")
+
+# 路径
+RootPath = os.path.abspath(os.path.dirname(__file__))
+icon_Path = os.path.join(rootPath(),"core","icon")
 
 
 class Main(QMainWindow):
     def __init__(self, *args,**kwargs) -> None:
         super().__init__(*args,**kwargs)
+
+        self.ip_map = IpMap()
         self.setupUi()
         self.myMenu()
         self.Init()
@@ -32,6 +43,10 @@ class Main(QMainWindow):
         for ip in self.treeTab.usableMachine():
             ip = ip[0]
             self.addTable(ip)
+
+        # 创建ip映射列表
+        ip_list= [ip[0]+"|"+ip[1] for ip in self.treeTab.usableMachine()]
+        self.ip_map.createTable(ip_list)
 
     # 隐藏/显示左侧树
     def visLeft(self,vis:bool):
@@ -91,75 +106,30 @@ class Main(QMainWindow):
         btn_down.clicked.connect(lambda :self.down_jpg(ip))
         self.tableWidget.setCellWidget(row, 1, btn_down)
 
-    def login_success_event(self,b,hide_webView):
-        hide_webView.im_map(hide_webView)
-        # 结果
-#         def re_(d):
-#             print("d:",d)
-#         # 这里有问题
-#         print("隐藏浏览器登录成功",b)
-#         js_click='''
-# function clickVM(){
-#     var e = document.getElementsByClassName("inline");
-#     e[3].click();
-# }
-#         '''
-#         hide_webView.page().runJavaScript(js_click)
-#         hide_webView.page().runJavaScript("clickVM();")
-#         print("--><<>")
-#         js_find_ip='''
-# function getIpDict(){
-#     real_id = {};
-#     // 获取机器真实访问id
-#     var tb= document.getElementsByTagName("tbody")[0];
-#     var tb_childs = tb.childNodes;
-#     for(var i=0;i<tb_childs.length;i++){
-#         var tt = tb_childs[i].childNodes[1].childNodes[0];
-#         var title = tt.getAttribute("title");
-#         if(title!="pfsense"){
-#             var real_t = tt.getAttribute("data-moid");
-#             real_id[title]=real_t;
-#         }
-#     }
-#     console.log(real_id);
-#     return 10;
-# }
-#         '''
-#         hide_webView.page().runJavaScript(js_find_ip)
-#         hide_webView.page().runJavaScript("getIpDict();",re_)
-
-
-    # ip映射事件
-    def ip_map_event(self):
-        print("ip_map_event")
-        ip = self.treeTab.usableMachine()[1][0]
-        # for ip in self.treeTab.usableMachine():
-        #     ip = ip[0]
-        # 创建隐藏浏览器
-        url = "https://{}/ui/".format(ip)
-        print(url)
-        hide_webView = WebView()
-        hide_webView.setPage(hide_webView.web)
-        hide_webView.load(url)
-        hide_webView.loginSuccessfuled.connect(lambda b:self.login_success_event(b,hide_webView))
-        self.treeTab.testaddTab(hide_webView)
-
     def myMenu(self):
         self.menu = MenuSys(self)
         self.menu.addMenuHeader(["视图", "设置"])
         self.menu.addMenuChild("视图", ["默认视图", "隐藏左","隐藏右","隐藏左右"])
         self.menu.addMenuChild("设置", ["Ip映射","进入配置页面","回主页"])
-        self.menu.connect("视图", "默认视图", lambda: self.defaultView())
+        self.menu.connect("视图", "默认视图", lambda: self.defaultView(),icon=os.path.join(icon_Path,"view.png"))
         self.menu.connect("视图", "隐藏左", lambda :self.visLeft(True))
         self.menu.connect("视图", "隐藏右", lambda :self.visRight(True))
-        self.menu.connect("视图", "隐藏左右", lambda :self.hideLeftRigth())
-        self.menu.connect("设置", "Ip映射", lambda :self.ip_map_event())
-        self.menu.connect("设置","进入配置页面",lambda :self.stackedWidget.setCurrentIndex(1))
-        self.menu.connect("设置","回主页",lambda :self.stackedWidget.setCurrentIndex(0))
+        self.menu.connect("视图", "隐藏左右", lambda :self.hideLeftRigth(),icon=os.path.join(icon_Path,"center.png"))
+        self.menu.connect("设置", "Ip映射", lambda :self.stackedWidget.setCurrentIndex(2))
+        self.menu.connect("设置","进入配置页面",lambda :self.stackedWidget.setCurrentIndex(1),icon=os.path.join(icon_Path,"setting.png"))
+        self.menu.connect("设置","回主页",lambda :self.stackedWidget.setCurrentIndex(0),icon=os.path.join(icon_Path,"home.png"))
+
+        # --------------------
+        tool = self.addToolBar("tool")
+        tool.addAction(self.menu.getChildObj("设置","回主页"))
+        tool.addAction(self.menu.getChildObj("视图", "默认视图"))
+        tool.addAction(self.menu.getChildObj("视图", "隐藏左右"))
+        tool.addAction(self.menu.getChildObj("设置","进入配置页面"))
+
 
     def setupUi(self):
         self.setObjectName("self")
-        self.resize(1072, 739)
+        self.resize(1400, 850)
         self.setStyleSheet('''
 *{
 background-color: rgb(62, 62, 93);
@@ -388,6 +358,7 @@ border:1px solid rgb(113, 113, 113);
         self.statusbar.setObjectName("statusbar")
         self.setStatusBar(self.statusbar)
 
+        self.stackedWidget.addWidget(self.ip_map)
         self.retranslateUi()
         self.stackedWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(self)

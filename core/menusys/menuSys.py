@@ -5,6 +5,8 @@
 # @software:PyCharm
 
 import sys
+
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication,QAction,QMenu,QMenuBar,QMainWindow
 
 '''
@@ -110,11 +112,13 @@ class MenuSys:
             self.menu_tree_obj[menu_header]["child_obj"][child_text]=action
 
     # 返回子项对象
-    def getChildObj(self,menu_header:str,child_text:str):
+    def getChildObj(self,menu_header:str,child_text:str)->QAction:
         return self.menu_tree_obj[menu_header]["child_obj"][child_text]
 
-    def connect(self,parent_menu_name:str,child_menu_name:str,target,args=tuple()):
+    def connect(self,parent_menu_name:str,child_menu_name:str,target,args=tuple(),icon=None):
         obj = self.getChildObj(parent_menu_name,child_menu_name)
+        if icon:
+            obj.setIcon(QIcon(icon))
         obj.triggered.connect(lambda:target(*args))
 
     # 绑定快捷键
