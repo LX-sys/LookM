@@ -4,6 +4,7 @@
 # @file:tabBar.py
 # @software:PyCharm
 import sys
+import copy
 from PyQt5 import QtGui
 from PyQt5.QtCore import QPoint, Qt, pyqtSignal, QCoreApplication
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings
@@ -93,20 +94,23 @@ QTabWidget::pane{
 background-color: rgb(152, 152, 226);
 }
 QTabBar::tab{
-	background-color: rgb(58, 58, 173);
-	height:28;
+background-color: rgb(58, 58, 173);
+height:30px;
+width:80px;
 }
 QTabBar::tab:hover,QTabBar::tab:selected{
 	background-color: rgb(85, 85, 255);
 }
         ''')
-        # self.tab_list = []
+
         self.tab = MyTabBar()
         self.setTabBar(self.tab)
         self.setTabsClosable(True)
 
         '''
-        {"web":"机器tab对象","state":True}
+        {
+            number:{"web":"机器tab对象","state":True}
+        }
         '''
         self.__machine = dict()
 
@@ -131,6 +135,16 @@ QTabBar::tab:hover,QTabBar::tab:selected{
             return True
         return False
 
+    # 获取所有机器的已经存在的机器编号和状态
+    def all_machine(self) -> dict:
+        if not self.__machine:
+            return dict()
+
+        temp_machine_dict = dict()
+        for key,value in self.__machine.items():
+            temp_machine_dict[key] = value["state"]
+        return temp_machine_dict
+
     # 获取number的窗口
     def get_machine(self,number:str)->WebView:
         if self.__machine.get(number,None) is None:
@@ -143,6 +157,11 @@ QTabBar::tab:hover,QTabBar::tab:selected{
             self.get_machine(number).load(url)
 
     def addTab(self, widget: QWidget=None, number: str="",pos:int=None,url=None):
+        # 如果窗口已经打开,直接返回
+        if self.is_tabBar(number):
+            self.focusTab(number) # 聚焦tab
+            return
+
         win = QMainWindow()
         self.docw = MyQDockWidget()
 
@@ -171,8 +190,24 @@ QTabBar::tab:hover,QTabBar::tab:selected{
 
         if pos is None:
             super().addTab(win, number)
+            self.focusTab(number)  # 聚焦tab
         else:
             super().insertTab(pos, win, number)
+
+    # 判断窗口是否已经打开
+    def is_tabBar(self,text:str):
+        tab_count = self.tabBar().count()
+        for i in range(tab_count):
+            if self.tabBar().tabText(i) == text:
+                return True
+        return False
+
+    # 聚焦tab
+    def focusTab(self, text: str):
+        for i in range(self.count()):
+            if self.tabText(i) == text:
+                self.setCurrentIndex(i)
+                break
 
     # 自定义拖拽事件
     def tabDragEvent(self,b:bool):
@@ -181,6 +216,7 @@ QTabBar::tab:hover,QTabBar::tab:selected{
 
     # tab关闭
     def tab_close_Event(self,index:int):
+        # 移除机器,并保存状态
         number = self.tabText(index)
         self.removeTab(index)
         self.saveMachineSate(number,None,False)
@@ -192,7 +228,6 @@ QTabBar::tab:hover,QTabBar::tab:selected{
             self.tabDoubleed.emit(number)
 
     def myEvent(self):
-        # self.tab.draged.connect(self.tabDragEvent)
         self.tabCloseRequested.connect(self.tab_close_Event)
         # tab点击事件
         self.tabBarDoubleClicked.connect(self.tabDouble)

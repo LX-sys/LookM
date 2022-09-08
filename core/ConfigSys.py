@@ -67,5 +67,5 @@ class ConfigSys:
 
 if __name__ == '__main__':
     con = ConfigSys()
-    con.read(Config_Path)
-    print(con.get("Machine","user"))
+    con.read(r"D:\code\LookM\Config\proxies.json")
+    print(con.get("Proxies","https"))

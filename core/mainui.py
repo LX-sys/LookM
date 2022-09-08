@@ -2,14 +2,15 @@
 
 import os
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QTableWidgetItem, QPushButton, QMessageBox
+import pprint
+from PyQt5.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QTableWidgetItem, QPushButton, QMessageBox,QShortcut
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from GuiLib.TreeTab.treeTab import TreeTab
 from core.menusys.menuSys import MenuSys
 from core.ip_map_UI import IpMap
 from GuiLib.WebView.webView import WebView
-
+from core.down_jpg import downJpg
 
 # 顶级路径
 def rootPath()->str:
@@ -87,8 +88,34 @@ class Main(QMainWindow):
         self.tableWidget.verticalHeader().setVisible(False)
         self.verticalLayout_3.addWidget(self.tableWidget)
 
+    # ---------------------------
+    def strat_ip_map(self,b,hide_webView):
+        hide_webView.im_dowm_image(hide_webView)
+
+    # 获取图片链接下载结果
+    def down_img_data(self,url,data):
+        print("链接:",data)
+        print("开始下载图片...")
+        downJpg("dingzj","VYVQ2HsWeVraH0Za7Yxc",data,3)
+        print("图片下载完成")
+
+
+    # ---------------------------
+
+
     def down_jpg(self,ip):
         print("ip->",ip)
+        url = "https://{}/ui/".format(ip)
+        print("开始映射",url)
+
+        hide_webView = WebView()
+        hide_webView.resize(1200, 1000)  # 这里的创建必须设置大
+
+        hide_webView.setPage(hide_webView.web)
+        hide_webView.load(url)
+
+        hide_webView.loginSuccessfuled.connect(lambda b: self.strat_ip_map(b, hide_webView))
+        hide_webView.DownJpgDate.connect(lambda data: self.down_img_data(ip, data))
 
     # 添加table,下载图片的
     def addTable(self,ip:str):
@@ -106,18 +133,35 @@ class Main(QMainWindow):
         btn_down.clicked.connect(lambda :self.down_jpg(ip))
         self.tableWidget.setCellWidget(row, 1, btn_down)
 
+    # 清除所有选中机器的颜色
+    def clearAllMark(self):
+        self.treeTab.tree.clearBackgroundColor()
+
+    # 查看已经打开的所有机器(包括隐藏的)
+    def lookOpenMachine(self):
+        pprint.pprint(self.treeTab.tab.all_machine())
+
+
     def myMenu(self):
         self.menu = MenuSys(self)
-        self.menu.addMenuHeader(["视图", "设置"])
-        self.menu.addMenuChild("视图", ["默认视图", "隐藏左","隐藏右","隐藏左右"])
+        self.menu.addMenuHeader(["视图","机器", "设置"])
+        self.menu.addMenuChild("视图", ["默认视图", "隐藏左","隐藏右","隐藏左右","清除所有选中机器的标记"])
+        self.menu.addMenuChild("机器", ["查看已经打开的机器","手动添加机器", "删除手动机器"])
+
         self.menu.addMenuChild("设置", ["Ip映射","进入配置页面","回主页"])
-        self.menu.connect("视图", "默认视图", lambda: self.defaultView(),icon=os.path.join(icon_Path,"view.png"))
-        self.menu.connect("视图", "隐藏左", lambda :self.visLeft(True))
-        self.menu.connect("视图", "隐藏右", lambda :self.visRight(True))
-        self.menu.connect("视图", "隐藏左右", lambda :self.hideLeftRigth(),icon=os.path.join(icon_Path,"center.png"))
-        self.menu.connect("设置", "Ip映射", lambda :self.stackedWidget.setCurrentIndex(2))
+
+        self.menu.connect("视图", "默认视图", lambda: self.defaultView(),icon=os.path.join(icon_Path,"view.png"),shortcut="Shift+D")
+        self.menu.connect("视图", "隐藏左", lambda :self.visLeft(True),shortcut="Shift+L")
+        self.menu.connect("视图", "隐藏右", lambda :self.visRight(True),shortcut="Shift+R")
+        self.menu.connect("视图", "隐藏左右", lambda :self.hideLeftRigth(),icon=os.path.join(icon_Path,"center.png"),shortcut="Shift+H")
+        self.menu.connect("视图", "清除所有选中机器的标记", lambda :self.clearAllMark())
+
+        self.menu.connect("设置", "Ip映射", lambda :self.stackedWidget.setCurrentIndex(2),shortcut="Ctrl+I")
         self.menu.connect("设置","进入配置页面",lambda :self.stackedWidget.setCurrentIndex(1),icon=os.path.join(icon_Path,"setting.png"))
-        self.menu.connect("设置","回主页",lambda :self.stackedWidget.setCurrentIndex(0),icon=os.path.join(icon_Path,"home.png"))
+        self.menu.connect("设置","回主页",lambda :self.stackedWidget.setCurrentIndex(0),icon=os.path.join(icon_Path,"home.png"),
+                          shortcut="Ctrl+H")
+
+        self.menu.connect("机器", "查看已经打开的机器", lambda :self.lookOpenMachine())
 
         # --------------------
         tool = self.addToolBar("tool")
@@ -182,7 +226,7 @@ border:1px solid rgb(113, 113, 113);
 #widget{
 	border-left:5px solid rgb(82, 82, 122);
 }
-        ''')
+''')
         self.centralwidget = QtWidgets.QWidget(self)
         self.centralwidget.setStyleSheet("")
         self.centralwidget.setObjectName("centralwidget")
@@ -404,6 +448,8 @@ border:1px solid rgb(113, 113, 113);
     def myEvent(self):
         self.lineEdit_search.returnPressed.connect(self.search_Event)
         self.btn_search.clicked.connect(self.search_Event)
+
+
 
 
 if __name__ == '__main__':

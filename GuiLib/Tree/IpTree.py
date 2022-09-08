@@ -27,6 +27,8 @@ icon_Path = os.path.join(rootPath(),"GuiLib","Tree","icon")
 # 配置文件的路径
 Config_Path = os.path.join(rootPath(),"Config","machine.json")
 
+# 机器打开时,节眼色
+Open_Tree_Color = QColor(227, 76, 0)
 
 # 自定义右键菜单
 class RightMenu(QMenu):
@@ -122,17 +124,8 @@ QTreeWidget{
 border:none;
 border-right:5px solid rgb(82, 82, 122);
 }
-QTreeWidget::item:hover{
-background-color: rgb(152, 152, 226);
-}
-QTreeWidget::item:selected{
-background-color: rgb(152, 152, 226);
-}
-QTreeWidget::item:hover{
-background-color: rgb(152, 152, 226);
-}
-QTreeWidget::item:selected{
-background-color: rgb(152, 152, 226);
+QTreeWidget::item:hover,QTreeWidget::item:selected{
+border:1px solid rgb(152, 152, 226);
 }
                 ''')
 
@@ -216,11 +209,27 @@ background-color: rgb(152, 152, 226);
                 else:
                     self.createTree(v, item)
 
+    # 清除所有背景颜色
+    def clearBackgroundColor(self):
+        for i in range(self.topLevelItemCount()):
+            item = self.topLevelItem(i)
+            # item.setBackground(0, QColor(62, 62, 93))
+            # item.setBackground(1, QColor(62, 62, 93))
+            for j in range(item.childCount()):
+                item_c = item.child(j)
+                item_c.setBackground(0, QColor(62, 62, 93))
+                item_c.setBackground(1, QColor(62, 62, 93))
+
     def ip_spcre_Event(self,index:QModelIndex):
         number = index.data()
         # number点击后有可能为空,直接用当前节点的text
         if number is None:
             number = self.currentItem().text(0)
+
+        # 选中后添加颜色
+        item = self.currentItem()
+        item.setBackground(0, Open_Tree_Color)
+        item.setBackground(1, Open_Tree_Color)
 
         if number and number.isdigit():
             ip = self.currentItem().parent().text(0)
@@ -276,6 +285,9 @@ background-color: rgb(152, 152, 226);
     # 根据文本展开节点,并选中
     def textExpanded(self,text:str):
         item = self.getNode(text)
+        # 当有机器打开时,设置延时
+        item.setBackground(0, Open_Tree_Color)
+        item.setBackground(1, Open_Tree_Color)
         if item:
             parent_item = item.parent()
             parent_item.setExpanded(True)

@@ -115,10 +115,13 @@ class MenuSys:
     def getChildObj(self,menu_header:str,child_text:str)->QAction:
         return self.menu_tree_obj[menu_header]["child_obj"][child_text]
 
-    def connect(self,parent_menu_name:str,child_menu_name:str,target,args=tuple(),icon=None):
+    def connect(self,parent_menu_name:str,child_menu_name:str,target,args=tuple(),icon=None,shortcut=None):
         obj = self.getChildObj(parent_menu_name,child_menu_name)
         if icon:
             obj.setIcon(QIcon(icon))
+
+        if shortcut:
+            obj.setShortcut(shortcut)
         obj.triggered.connect(lambda:target(*args))
 
     # 绑定快捷键
